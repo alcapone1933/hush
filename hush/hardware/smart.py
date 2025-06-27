@@ -30,7 +30,9 @@ class Smart(Device):
             return False
         try:
             result = await self.ssh.shell(f"hdparm -C {drive_path}")
-            if "standby" in result.stdout.lower():
+            output = result.stdout.lower()
+            logger.info(f"hdparm output for {drive_path}: {output.strip()}")
+            if "standby" in output:
                 logger.info(f"{drive_path} is in standby mode.")
                 return True
         except Exception as e:
