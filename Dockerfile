@@ -16,7 +16,7 @@ RUN mkdir -p /app/logs
 RUN chmod 777 /app/resources/docker-entrypoint.sh
 
 EXPOSE 8080
-ENV PYTHONUNBUFFERED True
+ENV PYTHONUNBUFFERED=True
 
 ENTRYPOINT ["/app/resources/docker-entrypoint.sh"]
 CMD ["python", "main.py"]
