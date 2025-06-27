@@ -85,6 +85,7 @@ class Machine:
         hosts.append(self._host)
         for host in hosts:
             for sensor in ["cpu", "pci", "drive", "gpu", "chassis"]:
+                speed = None  # <-- Fix: Initialisierung vor Verwendung
                 driver = await Factory.driver(host, sensor)
                 if driver is not None:
                     meas_temp = await driver.get_temp()
@@ -110,24 +111,23 @@ class Machine:
                             curve = Curve(host, sensor)
                             speed = curve.calc(meas_temp)
                             logger.debug(f"{host} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
-                    if speed is not None:
-                        if isinstance(speed, str) is True:
-                            current_speed = curve.speeds.index(speed)
-                        else:
-                            current_speed = speed
-                        if highest_speed is None or current_speed > highest_speed:
-                            highest_speed = current_speed
-                            if isinstance(speed, str) is True:
-                                final_speed = curve.speeds[highest_speed]
-                            else:
-                                final_speed = highest_speed
+                if speed is not None:
+                    if isinstance(speed, str):
+                        current_speed = curve.speeds.index(speed)
+                    else:
+                        current_speed = speed
+                    if highest_speed is None or current_speed > highest_speed:
+                        highest_speed = current_speed
+                        final_speed = curve.speeds[highest_speed] if isinstance(speed, str) else highest_speed
         if final_speed is not None:
             if mqtt_active:
-                unit_of_measurement = None
-                if isinstance(final_speed, int) or isinstance(final_speed, float):
-                    unit_of_measurement = "%"
+                unit_of_measurement = "%" if isinstance(final_speed, (int, float)) else None
                 mqtt_speed_info = SensorInfo(
-                    name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", unit_of_measurement=unit_of_measurement, device=mqtt_device_info
+                    name="Fan Speed",
+                    device_class=None,
+                    unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed",
+                    unit_of_measurement=unit_of_measurement,
+                    device=mqtt_device_info
                 )
                 mqtt_speed_settings = Settings(mqtt=mqtt_settings, entity=mqtt_speed_info)
                 mqtt_speed = Sensor(mqtt_speed_settings)
@@ -155,8 +155,8 @@ class Curve:
 
     def calc(self, temp):
         value = None
-        if isinstance(self._speeds, List) is True and isinstance(self._temps, List) is True and len(self._speeds) == len(self._temps):
-            if isinstance(self._speeds[0], int) is True:
+        if isinstance(self._speeds, List) and isinstance(self._temps, List) and len(self._speeds) == len(self._temps):
+            if isinstance(self._speeds[0], int):
                 value = self.temp2pwm(temp)
             else:
                 value = self.temp2value(temp)
