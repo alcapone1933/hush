@@ -61,20 +61,18 @@ class Smart(Device):
             logger.info(f"Exception: {e}")
             return fallback_temp
 
-        async def get_temp(self):
-            fallback_temp = 30  # Fallback-Temp
-            try:
-                drive_temps = list()
-                if self._drives is None or self._drives == []:
-                    self._drives = await self.get_drive_list()
-                for drive_path in self._drives:
-                    temp = await self.get_drive_temp(drive_path=drive_path, fallback_temp=fallback_temp)
-                    if temp is not None:
-                        drive_temps.append(float(temp))
-                self._temp = int(np.max(drive_temps)) if drive_temps else fallback_temp
-                return self._temp
-            except Exception as e:
-                logger.info(f"drive_paths = {self._drives}")
-                logger.info(f"drive_temps = {drive_temps}")
-                raise e
-
+    async def get_temp(self):
+        try:
+            drive_temps = list()
+            if self._drives is None or self._drives == []:
+                self._drives = await self.get_drive_list()
+            for drive_path in self._drives:
+                temp = await self.get_drive_temp(drive_path=drive_path)
+                if temp is not None:
+                    drive_temps.append(float(temp))
+            self._temp = int(np.max(drive_temps))
+            return self._temp
+        except Exception as e:
+            logger.info(f"drive_paths = {self._drives}")
+            logger.info(f"drive_temps = {drive_temps}")
+            raise e
