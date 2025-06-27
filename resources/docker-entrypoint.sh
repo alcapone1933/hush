@@ -3,6 +3,9 @@ set -x
 # Get the PUID and PGID from environment variables (or use default values 1000 if not set)
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
+TZ=${TZ:-Europe/Berlin}
+
+ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Check if the provided PUID and PGID are non-empty, numeric values; otherwise, assign default values.
 if ! [[ "$PUID" =~ ^[0-9]+$ ]]; then

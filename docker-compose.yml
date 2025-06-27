@@ -2,13 +2,41 @@ version: "3.8"
 
 services:
   hush:
+    build:
+      dockerfile: ./Dockerfile
     image: ghcr.io/natankeddem/hush:latest
+    container_name: hush-fancontrol
+    restart: unless-stopped
     ports:
       - 8080:8080
     volumes:
       - ~/path/to/data:/app/data
       - ~/path/to/logs:/app/logs
     environment:
+      - TZ=Europe/Berlin
       - PUID=1000
       - PGID=1000
       - VERBOSE_LOGGING=TRUE # Optional: Will enable additional logging. Warning logs may contain passwords in plaintext. Sanitize before sharing.
+
+  ssh-hdd:
+    build:
+      dockerfile: ./ssh-hdd.dockerfile
+    image: alcapone1933/ssh-hdd:latest
+    container_name: ssh-hdd
+    restart: unless-stopped
+    # ports:
+      # - "2222:22"
+    environment:
+      - TZ=Europe/Berlin
+      - SFTP_PASSWORD=geheim123
+    volumes:
+      - /run/udev:/run/udev:ro
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+    devices:
+      - /dev/sda
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/sdd
+      - /dev/nvme0
